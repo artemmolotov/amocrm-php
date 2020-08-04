@@ -75,6 +75,7 @@ class Client
      * @param string $clientSecret
      * @param string $redirectUri
      * @param OAuthTokenPersistenceHandlerInterface $oauthTokenPersistenceHandler
+     * @param string|null $baseDomain
      * @param null $proxy
      */
     public function __construct(
@@ -82,6 +83,7 @@ class Client
         string $clientSecret,
         string $redirectUri,
         OAuthTokenPersistenceHandlerInterface $oauthTokenPersistenceHandler,
+        string $baseDomain = null,
         $proxy = null
     ) {
         $this->parameters = new ParamsBag();
@@ -94,6 +96,11 @@ class Client
             'clientSecret' => $clientSecret,
             'redirectUri' => $redirectUri,
         ]);
+
+        if ($baseDomain !== null) {
+            $this->oauthProvider->setBaseDomain($baseDomain);
+        }
+
         $this->oauthTokenPersistenceHandler = $oauthTokenPersistenceHandler;
 
         if ($proxy !== null) {
