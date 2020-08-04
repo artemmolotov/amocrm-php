@@ -1,16 +1,24 @@
 {
-    "name": "dotzero/amocrm",
-    "description": "Удобный и быстрый клиент для работы с API amoCRM",
+    "name": "neyra-ai/amocrm-php",
+    "description": "Fork of dotzero/amocrm",
     "license": "MIT",
     "keywords": ["amocrm", "crm", "api"],
+    "homepage": "https://github.com/Neyra-ai/amocrm-php/",
     "authors": [
         {
             "name": "dotzero",
             "email": "mail@dotzero.ru"
+        },
+        {
+            "name": "Evgeniy Koval",
+            "email": "ekdev.ua@gmail.com",
+            "homepage": "https://github.com/infinitely-young",
+            "role": "Software Engineer"
         }
     ],
     "require": {
-        "php": ">=5.5.0"
+        "php": ">=5.5.0",
+        "amocrm/oauth2-amocrm": "^2.0"
     },
     "require-dev": {
         "phpunit/phpunit": "^5.7"
