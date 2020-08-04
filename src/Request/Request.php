@@ -2,9 +2,13 @@
 
 namespace AmoCRM\Request;
 
+use AmoCRM\OAuth\OAuthTokenPersistenceHandlerInterface;
+use AmoCRM\OAuth2\Client\Provider\AmoCRM;
 use DateTime;
 use AmoCRM\Exception;
 use AmoCRM\NetworkException;
+use League\OAuth2\Client\Grant\RefreshToken;
+use League\OAuth2\Client\Provider\Exception\IdentityProviderException;
 
 /**
  * Class Request
@@ -37,6 +41,16 @@ class Request
     private $parameters = null;
 
     /**
+     * @var AmoCRM
+     */
+    private $oauthProvider;
+
+    /**
+     * @var OAuthTokenPersistenceHandlerInterface
+     */
+    private $oauthTokenPersistenceHandler;
+
+    /**
      * @var CurlHandle Экземпляр CurlHandle
      */
     private $curlHandle;
@@ -54,12 +68,20 @@ class Request
     /**
      * Request constructor
      *
-     * @param ParamsBag       $parameters Экземпляр ParamsBag для хранения аргументов
+     * @param ParamsBag $parameters Экземпляр ParamsBag для хранения аргументов
+     * @param AmoCRM $oauthProvider
+     * @param OAuthTokenPersistenceHandlerInterface $oauthTokenPersistenceHandler
      * @param CurlHandle|null $curlHandle Экземпляр CurlHandle для повторного использования
      */
-    public function __construct(ParamsBag $parameters, CurlHandle $curlHandle = null)
-    {
+    public function __construct(
+        ParamsBag $parameters,
+        AmoCRM $oauthProvider,
+        OAuthTokenPersistenceHandlerInterface $oauthTokenPersistenceHandler,
+        CurlHandle $curlHandle = null
+    ) {
         $this->parameters = $parameters;
+        $this->oauthProvider = $oauthProvider;
+        $this->oauthTokenPersistenceHandler = $oauthTokenPersistenceHandler;
         $this->curlHandle = $curlHandle !== null ? $curlHandle : new CurlHandle();
     }
 
@@ -146,10 +168,12 @@ class Request
     /**
      * Подготавливает список заголовков HTTP
      *
+     * @param string $accessToken
      * @param mixed $modified Значение заголовка IF-MODIFIED-SINCE
      * @return array
+     * @throws \Exception
      */
-    protected function prepareHeaders($modified = null)
+    protected function prepareHeaders(string $accessToken, $modified = null)
     {
         $headers = [
             'Connection: keep-alive',
@@ -164,6 +188,8 @@ class Request
             }
         }
 
+        $headers = array_merge($headers, $this->oauthProvider->getHeaders($accessToken));
+
         return $headers;
     }
 
@@ -175,19 +201,7 @@ class Request
      */
     protected function prepareEndpoint($url)
     {
-        if ($this->v1 === false) {
-            $query = http_build_query(array_merge($this->parameters->getGet(), [
-                'USER_LOGIN' => $this->parameters->getAuth('login'),
-                'USER_HASH' => $this->parameters->getAuth('apikey'),
-            ]), null, '&');
-        } else {
-            $query = http_build_query(array_merge($this->parameters->getGet(), [
-                'login' => $this->parameters->getAuth('login'),
-                'api_key' => $this->parameters->getAuth('apikey'),
-            ]), null, '&');
-        }
-
-        return sprintf('https://%s%s?%s', $this->parameters->getAuth('domain'), $url, $query);
+        return sprintf('%s%s', $this->oauthProvider->urlAccount(), $url);
     }
 
     /**
@@ -198,10 +212,22 @@ class Request
      * @return mixed
      * @throws Exception
      * @throws NetworkException
+     * @throws IdentityProviderException
      */
     protected function request($url, $modified = null)
     {
-        $headers = $this->prepareHeaders($modified);
+        $accessToken = $this->oauthTokenPersistenceHandler->getToken($this->oauthProvider->getClientId());
+
+        if ($accessToken->hasExpired()) {
+            $accessToken = $this->oauthProvider->getAccessToken(
+                new RefreshToken(),
+                ['refresh_token' => $accessToken->getRefreshToken()]
+            );
+
+            $this->oauthTokenPersistenceHandler->saveToken($this->oauthProvider->getClientId(), $accessToken);
+        }
+
+        $headers = $this->prepareHeaders($accessToken->getToken(), $modified);
         $endpoint = $this->prepareEndpoint($url);
 
         $this->printDebug('url', $endpoint);

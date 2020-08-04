@@ -3,6 +3,8 @@
 namespace AmoCRM;
 
 use AmoCRM\Models\ModelInterface;
+use AmoCRM\OAuth\OAuthTokenPersistenceHandlerInterface;
+use AmoCRM\OAuth2\Client\Provider\AmoCRM;
 use AmoCRM\Request\CurlHandle;
 use AmoCRM\Request\ParamsBag;
 use AmoCRM\Helpers\Fields;
@@ -57,24 +59,42 @@ class Client
     private $curlHandle;
 
     /**
-     * Client constructor
-     *
-     * @param string $domain Поддомен или домен amoCRM
-     * @param string $login Логин amoCRM
-     * @param string $apikey Ключ пользователя amoCRM
-     * @param string|null $proxy Прокси сервер для отправки запроса
+     * @var AmoCRM
      */
-    public function __construct($domain, $login, $apikey, $proxy = null)
-    {
-        // Разернуть поддомен в полный домен
-        if (strpos($domain, '.') === false) {
-            $domain = sprintf('%s.amocrm.ru', $domain);
-        }
+    private $oauthProvider;
 
+    /**
+     * @var OAuthTokenPersistenceHandlerInterface
+     */
+    private $oauthTokenPersistenceHandler;
+
+    /**
+     * Client constructor.
+     *
+     * @param string $clientId
+     * @param string $clientSecret
+     * @param string $redirectUri
+     * @param OAuthTokenPersistenceHandlerInterface $oauthTokenPersistenceHandler
+     * @param null $proxy
+     */
+    public function __construct(
+        string $clientId,
+        string $clientSecret,
+        string $redirectUri,
+        OAuthTokenPersistenceHandlerInterface $oauthTokenPersistenceHandler,
+        $proxy = null
+    ) {
         $this->parameters = new ParamsBag();
-        $this->parameters->addAuth('domain', $domain);
-        $this->parameters->addAuth('login', $login);
-        $this->parameters->addAuth('apikey', $apikey);
+        $this->parameters->addAuth('clientId', $clientId);
+        $this->parameters->addAuth('clientSecret', $clientSecret);
+        $this->parameters->addAuth('redirectUri', $redirectUri);
+
+        $this->oauthProvider = new AmoCRM([
+            'clientId' => $clientId,
+            'clientSecret' => $clientSecret,
+            'redirectUri' => $redirectUri,
+        ]);
+        $this->oauthTokenPersistenceHandler = $oauthTokenPersistenceHandler;
 
         if ($proxy !== null) {
             $this->parameters->addProxy($proxy);
@@ -103,6 +123,6 @@ class Client
         // Чистим GET и POST от предыдущих вызовов
         $this->parameters->clearGet()->clearPost();
 
-        return new $classname($this->parameters, $this->curlHandle);
+        return new $classname($this->parameters, $this->oauthProvider, $this->oauthTokenPersistenceHandler, $this->curlHandle);
     }
 }
