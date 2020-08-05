@@ -206,7 +206,7 @@ class Request
      */
     protected function prepareEndpoint($url)
     {
-        return sprintf('%s%s', $this->oauthProvider->urlAccount(), $url);
+        return sprintf('%s/%s', rtrim($this->oauthProvider->urlAccount(), '/'), ltrim($url, '/'));
     }
 
     /**
