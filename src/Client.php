@@ -71,6 +71,7 @@ class Client
     /**
      * Client constructor.
      *
+     * @param string $state
      * @param string $clientId
      * @param string $clientSecret
      * @param string $redirectUri
@@ -79,6 +80,7 @@ class Client
      * @param null $proxy
      */
     public function __construct(
+        string $state,
         string $clientId,
         string $clientSecret,
         string $redirectUri,
@@ -87,9 +89,7 @@ class Client
         $proxy = null
     ) {
         $this->parameters = new ParamsBag();
-        $this->parameters->addAuth('clientId', $clientId);
-        $this->parameters->addAuth('clientSecret', $clientSecret);
-        $this->parameters->addAuth('redirectUri', $redirectUri);
+        $this->parameters->addAuth('state', $state);
 
         $this->oauthProvider = new AmoCRM([
             'clientId' => $clientId,

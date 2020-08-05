@@ -69,7 +69,7 @@ class ParamsBag
      * Получение параметра для авторизации по ключу или список параметров
      *
      * @param string $name Название параметра
-     * @return array|null Значение параметра или список параметров
+     * @return array|string|null Значение параметра или список параметров
      */
     public function getAuth($name = null)
     {

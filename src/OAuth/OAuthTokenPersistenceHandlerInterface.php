@@ -14,17 +14,17 @@ interface OAuthTokenPersistenceHandlerInterface
     /**
      * getToken
      *
-     * @param string $clientId
+     * @param string $state
      * @return AccessTokenInterface
      */
-    public function getToken(string $clientId): AccessTokenInterface;
+    public function getToken(string $state): AccessTokenInterface;
 
     /**
      * saveToken
      *
-     * @param string $clientId
+     * @param string $state
      * @param AccessTokenInterface $accessToken
      * @return mixed
      */
-    public function saveToken(string $clientId, AccessTokenInterface $accessToken);
+    public function saveToken(string $state, AccessTokenInterface $accessToken);
 }

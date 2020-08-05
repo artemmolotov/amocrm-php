@@ -221,7 +221,7 @@ class Request
      */
     protected function request($url, $modified = null)
     {
-        $accessToken = $this->oauthTokenPersistenceHandler->getToken($this->oauthProvider->getClientId());
+        $accessToken = $this->oauthTokenPersistenceHandler->getToken($this->parameters->getAuth('state'));
 
         if ($accessToken->hasExpired()) {
             $accessToken = $this->oauthProvider->getAccessToken(
