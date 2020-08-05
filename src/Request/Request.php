@@ -188,9 +188,14 @@ class Request
             }
         }
 
-        $headers = array_merge($headers, $this->oauthProvider->getHeaders($accessToken));
+        $providerHeaders = $this->oauthProvider->getHeaders($accessToken);
+        $providerHeadersCurlConverted = [];
 
-        return $headers;
+        foreach ($providerHeaders as $header => $value) {
+            $providerHeadersCurlConverted[] = sprintf('%s: %s', $header, $value);
+        }
+
+        return array_merge($headers, $providerHeadersCurlConverted);
     }
 
     /**
