@@ -1,9 +1,8 @@
 {
-    "name": "neyra-ai/amocrm-php",
-    "description": "Fork of dotzero/amocrm",
+    "name": "dotzero/amocrm",
+    "description": "Удобный и быстрый клиент для работы с API amoCRM",
     "license": "MIT",
     "keywords": ["amocrm", "crm", "api"],
-    "homepage": "https://github.com/Neyra-ai/amocrm-php/",
     "authors": [
         {
             "name": "dotzero",
