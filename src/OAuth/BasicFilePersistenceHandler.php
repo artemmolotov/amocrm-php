@@ -24,7 +24,7 @@ final class BasicFilePersistenceHandler implements OAuthTokenPersistenceHandlerI
         $dirname = dirname($filePath);
 
         if (!file_exists($dirname)) {
-            mkdir($dirname, 0600, true);
+            mkdir($dirname, 0700, true);
         }
     }
 
