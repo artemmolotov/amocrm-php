@@ -3,7 +3,7 @@
 namespace AmoCRM\OAuth;
 
 use League\OAuth2\Client\Token\AccessTokenInterface;
-use RuntimeException;
+use OutOfBoundsException;
 
 final class BasicFilePersistenceHandler implements OAuthTokenPersistenceHandlerInterface
 {
