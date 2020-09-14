@@ -206,7 +206,44 @@ class Request
      */
     protected function prepareEndpoint($url)
     {
-        return sprintf('%s/%s', rtrim($this->oauthProvider->urlAccount(), '/'), ltrim($url, '/'));
+        $url = sprintf('%s/%s', rtrim($this->oauthProvider->urlAccount(), '/'), ltrim($url, '/'));
+
+        if (!empty($this->parameters->getGet())) {
+            $buildUrl = function ($parts) {
+                $scheme   = isset($parts['scheme']) ? ($parts['scheme'] . '://') : null;
+
+                $host     = isset($parts['host']) ? $parts['host'] : null;
+                $port     = isset($parts['port']) ? (':' . $parts['port']) : null;
+
+                $user     = isset($parts['user']) ? $parts['user'] : null;
+                $pass     = isset($parts['pass']) ? (':' . $parts['pass'])  : null;
+                $pass     = ($user || $pass) ? ($pass . '@') : null;
+
+                $path     = isset($parts['path']) ? $parts['path'] : null;
+
+                $query    = empty($parts['query']) ? null : ('?' . $parts['query']);
+
+                $fragment = empty($parts['fragment']) ? null : ('#' . $parts['fragment']);
+
+                return implode([$scheme, $user, $pass, $host, $port, $path, $query, $fragment]);
+            };
+
+            $parsedUrl = parse_url($url);
+
+            if ($parsedUrl === false) {
+                throw new Exception('URL invalid');
+            }
+
+            $additionalQuery = http_build_query(array_merge($this->parameters->getGet()), null, '&');
+
+            $parsedUrl['query'] = (empty($parsedUrl['query']))
+                ? $additionalQuery
+                : $parsedUrl['query'] . '&' . $additionalQuery;
+
+            $url = $buildUrl($parsedUrl);
+        }
+
+        return $url;
     }
 
     /**
